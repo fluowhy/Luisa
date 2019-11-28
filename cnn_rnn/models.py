@@ -37,6 +37,7 @@ class IMG2SEQ(torch.nn.Module):
         self.fc = torch.nn.Linear(nh, int((nin + nh) * 0.5))
         self.out = torch.nn.Linear(int((nin + nh) * 0.5), nin)
         self.bn = torch.nn.BatchNorm1d(int((nin + nh) * 0.5))
+        self.softmax = torch.nn.Softmax(dim=-1)
 
     def convolutions(self, x):
         x = self.maxpool1(self.relu(self.bn1(self.conv1(x))))
@@ -68,8 +69,11 @@ class IMG2SEQ(torch.nn.Module):
         while xi != end_char and len(encoded_word) < lim:
             x, hidden = self.rnn(x, hidden)
             x = self.out(self.relu(self.bn(self.fc(x).transpose(1, 2)).transpose(1, 2)))
-            xi = torch.argmax(x.squeeze())
-            encoded_word.append(xi.cpu().numpy())
+            xi = self.softmax(x.squeeze())
+            xi = torch.multinomial(xi, 1)
+            encoded_word.append(xi.item())
+            x = torch.zeros(x.shape, dtype=torch.float)
+            x[:, :, xi.item()] = 1
         return encoded_word
 
 

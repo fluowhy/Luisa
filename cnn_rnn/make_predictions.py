@@ -22,7 +22,7 @@ def predit_and_plot(idx, sp):
     gt = decode_word(y_val[idx])
     plt.subplot(sp)
     plt.imshow(x_val[idx].squeeze())
-    plt.title("gt: {} \n pred: {}".format(gt, word))
+    plt.title("gt: {}  pred: {}".format(gt, word))
     return
 
 
